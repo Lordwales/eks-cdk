@@ -66,8 +66,7 @@ jobs:
         go mod tidy
         cdk bootstrap aws://${{secrets.CDK_DEFAULT_ACCOUNT}}/${{secrets.CDK_DEFAULT_REGION}} --cloudformation-execution-policies "arn:aws:iam::${{secrets.CDK_DEFAULT_ACCOUNT}}:policy/cdkCFExecutionPolicy"
         cdk deploy --all --require-approval never
-        cdk destroy --all --require-approval never
-
+        
     - name: Fetch CDK Outputs
       id: fetch_outputs
       run: |
