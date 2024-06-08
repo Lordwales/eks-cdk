@@ -63,6 +63,7 @@ jobs:
     - name: Run CDK deployment
       run: |
         cd cdk
+        go mod tidy
         cdk deploy --all --require-approval never
 
     - name: Configure kubectl
@@ -92,3 +93,8 @@ jobs:
           exit 1
         fi
         echo "Sanity test passed: received HTTP status $response"
+
+    - name: Destroy Infrastructure
+      run: |
+        cd cdk
+        cdk destroy --all --require-approval never
