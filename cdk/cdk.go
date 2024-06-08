@@ -88,7 +88,7 @@ func main() {
 	defer jsii.Close()
 	utils.InitLogs(nil, Log.DebugLevel)
 
-	loggerLevel := "debug" // *******###### Needs Looking Into ****########
+	loggerLevel := os.Getenv("LOG_LEVEL") // *******###### Needs Looking Into ****########
 	switch loggerLevel {
 	case "debug":
 		utils.Logger.SetLevel(Log.DebugLevel)
