@@ -1,0 +1,94 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Install AWS CLI
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y python3-pip
+        pip3 install awscli
+
+    - name: Install CDK
+      run: npm install -g aws-cdk
+
+    - name: Install Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: '1.18'
+
+    - name: Install kubectl
+      run: |
+        curl -LO "https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl"
+        chmod +x ./kubectl
+        sudo mv ./kubectl /usr/local/bin/kubectl
+
+    - name: Install Kustomize
+      run: |
+        curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh"  | bash
+        sudo mv ./kustomize /usr/local/bin/
+
+    - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+    - name: Build Docker image
+      run: docker build -t pyapp -f app/dockerfile ./app
+
+    - name: Tag Docker image
+      run: docker tag pyapp ${{ secrets.DOCKER_USERNAME }}/pyapp:latest
+
+    - name: Push Docker image
+      run: docker push ${{ secrets.DOCKER_USERNAME }}/pyapp:latest
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-east-1
+
+    - name: Run CDK deployment
+      run: |
+        cd cdk
+        cdk deploy --all --require-approval never
+
+    - name: Configure kubectl
+      run: |
+        aws eks update-kubeconfig --name MaxCluster
+
+    - name: Apply Kustomize overlays
+      run: |
+        kubectl apply -k k8s/overlays/prod
+
+    - name: Fetch Load Balancer DNS
+      id: fetch_lb_dns
+      run: |
+        NAMESPACE="default" 
+        SERVICE_NAME="flask-app-service" 
+        LB_DNS=$(kubectl get svc $SERVICE_NAME -n $NAMESPACE -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+        echo "::set-output name=lb_dns::$LB_DNS"
+
+    - name: Run Sanity Test
+      run: |
+        # Wait for the application to be ready
+        sleep 60
+        # Use the fetched Load Balancer DNS
+        response=$(curl -s -o /dev/null -w "%{http_code}" http://${{ steps.fetch_lb_dns.outputs.lb_dns }})
+        if [ "$response" -ne 200 ]; then
+          echo "Sanity test failed: received HTTP status $response"
+          exit 1
+        fi
+        echo "Sanity test passed: received HTTP status $response"

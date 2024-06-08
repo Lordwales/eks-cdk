@@ -1,0 +1,55 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "iam:*Role*",
+        "iam:GetPolicy",
+        "iam:CreatePolicy",
+        "iam:DeletePolicy",
+        "iam:*PolicyVersion*",
+        "states:ListStateMachines",
+        "states:ListActivities",
+        "states:CreateStateMachine",
+        "states:CreateActivity"
+      ],
+      "NotResource": [
+        "arn:aws:iam::*:role/cdk-*",
+        "arn:aws:iam::*:policy/cdkCFExecutionPolicy"
+      ]
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "states:ListStateMachines",
+        "states:ListActivities",
+        "states:CreateStateMachine",
+        "states:CreateActivity",
+        "states:TagResource",
+        "states:DescribeStateMachine",
+        "states:DeleteStateMachine"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "apigateway:*",
+        "cloudwatch:*",
+        "lambda:*",
+        "logs:*",
+        "s3:*",
+        "ssm:*",
+        "eks:*",
+        "ec2:*"
+      ],
+      "Resource": "*",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "us-east-1"
+        }
+      }
+    }
+  ]
+}
