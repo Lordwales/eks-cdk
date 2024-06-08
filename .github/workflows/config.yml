@@ -64,7 +64,7 @@ jobs:
       run: |
         cd cdk
         go mod tidy
-        cdk bootstrap aws://DK_DEFAULT_ACCOUNT/CDK_DEFAULT_REGION --cloudformation-execution-policies "arn:aws:iam::DK_DEFAULT_ACCOUNT:policy/cdkCFExecutionPolicy"
+        cdk bootstrap aws://CDK_DEFAULT_ACCOUNT/CDK_DEFAULT_REGION --cloudformation-execution-policies "arn:aws:iam::CDK_DEFAULT_ACCOUNT:policy/cdkCFExecutionPolicy"
         cdk deploy --all --require-approval never
 
     - name: Configure kubectl
