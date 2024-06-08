@@ -67,9 +67,17 @@ jobs:
         cdk bootstrap aws://${{secrets.CDK_DEFAULT_ACCOUNT}}/${{secrets.CDK_DEFAULT_REGION}} --cloudformation-execution-policies "arn:aws:iam::${{secrets.CDK_DEFAULT_ACCOUNT}}:policy/cdkCFExecutionPolicy"
         cdk deploy --all --require-approval never
 
-    # - name: Configure kubectl
-    #   run: |
-    #     aws eks update-kubeconfig --name MaxCluster
+    - name: Fetch CDK Outputs
+      id: fetch_outputs
+      run: |
+        STACK_NAME="CdkStack"
+        CLUSTER_NAME=$(aws cloudformation describe-stacks --stack-name $STACK_NAME --query "Stacks[0].Outputs[?OutputKey=='ClusterName'].OutputValue" --output text)
+        echo "::set-output name=stack_name::$STACK_NAME"
+        echo "::set-output name=cluster_name::$CLUSTER_NAME"
+
+    - name: Configure kubectl
+      run: |
+        aws eks update-kubeconfig --name ${{ steps.fetch_outputs.outputs.cluster_name }}
 
     - name: Apply Kustomize overlays
       run: |

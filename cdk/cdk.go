@@ -74,12 +74,10 @@ func NewCdkStack(scope constructs.Construct, id string, props *CdkStackProps) aw
 
 	cluster.Connections().AddSecurityGroup(sg)
 
-	// The code that defines your stack goes here
-
-	// example resource
-	// queue := awssqs.NewQueue(stack, jsii.String("CdkQueue"), &awssqs.QueueProps{
-	// 	VisibilityTimeout: awscdk.Duration_Seconds(jsii.Number(300)),
-	// })
+	// Output the cluster name
+	awscdk.NewCfnOutput(stack, jsii.String("ClusterName"), &awscdk.CfnOutputProps{
+		Value: cluster.ClusterName(),
+	})
 
 	return stack
 }
