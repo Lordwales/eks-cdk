@@ -73,7 +73,7 @@ jobs:
 
     - name: Apply Kustomize overlays
       run: |
-        kubectl apply -k k8s/overlays/prod
+        kubectl apply -k ./k8s-manifests/overlays/prod
 
     - name: Fetch Load Balancer DNS
       id: fetch_lb_dns
