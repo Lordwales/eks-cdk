@@ -45,7 +45,7 @@ jobs:
         password: ${{ secrets.DOCKER_PASSWORD }}
 
     - name: Build Docker image
-      run: docker build -t pyapp -f app/dockerfile ./app
+      run: docker build -t pyapp -f app/Dockerfile ./app
 
     - name: Tag Docker image
       run: docker tag pyapp ${{ secrets.DOCKER_USERNAME }}/pyapp:latest
